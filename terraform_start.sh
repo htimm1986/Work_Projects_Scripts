@@ -1,13 +1,12 @@
 #!/bin/bash
 #check directory, remove terraform files, switch, init#
-if [ $PWD = $HOME/repos ]; then
-        echo "You are in the correct directory"
+if find *.tf > /dev/null; then
         rm -rf .terraform*
         echo "terraform switch and intialize"
         tfswitch
         terraform init
 else
-    echo "You are not in ~/repos"
+    echo "No .tf files found"
     exit 1
 fi
 #show workspace and choose#
