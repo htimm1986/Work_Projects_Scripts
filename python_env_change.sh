@@ -1,32 +1,33 @@
 #!/bin/bash
-### python3 env change###
-echo 'Current Python version :'
-python3 --version
-python3 -m venv 3.9
-### Activate pyton3 .venv###
-echo "Activating venv"
-source .venv/bin/activate
-#check for specific poetry package.json#
-echo "cheking for package.json"
-if  find ~/repos -name package.json; then
-    echo 'package.json exists in repo path above'
-else
-    echo "package.json does not exist"
-fi
 ### check poetry install exit if not installed w/message ###
 echo "verifying poetry install"
 if command -v poetry > /dev/null; then
     echo "poetry is installed on the system"
 else
     echo "poetry is not installed"
-    exit
+    exit 1
 fi
-echo 'Your poetry version:'
-poetry --version
-#check for version requirements.txt# 
-echo "checking for requirements.txt file"
-if find ~/repos -name requirements.txt; then
-    echo "requirements.txt exists in repo path above"
+#check for specific poetry pyproject.toml#
+if  find pyproject.toml > /dev/null; 
+    
+else
+    echo "pyproject.toml does not exist"
+    exit 1
+fi
+#check for version requirements.txt and pip3 install# 
+if find requirements.txt > /dev/null;
+    
 else
     echo "requirements.txt does not exist"
+    exit 1
 fi 
+### python3 env change###
+my_pyth=$(grep -Po "(?<=sonar.python.version=)([0-9]|\.)*(?=\s|$)" sonar-project.properties)
+echo 'Python3 version required:' $my_pyth
+python{$my_pyth} -m venv .venv
+### Activate pyton3 .venv###
+echo "Activating venv"
+source .venv/bin/activate
+#poetry and pip3 install#
+poetry install pyproject.toml
+pip3 install -r requirements.txt
