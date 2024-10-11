@@ -1,33 +1,49 @@
 #!/bin/bash
-### check poetry install exit if not installed w/message ###
-echo "verifying poetry install"
+#author ["Hampton Timm <hampton.timm@mihin.org"]
+
+#check poetry install exit if not installed w/message
 if command -v poetry > /dev/null; then
-    echo "poetry is installed on the system"
+    :
 else
     echo "poetry is not installed"
     exit 1
 fi
-#check for specific poetry pyproject.toml#
-if  find pyproject.toml > /dev/null; 
-    
+
+#grep python version from sonar-project.properties/pyproject.toml, exit if none, if found python3 env change
+if grep -Po 'sonar.python.version\D*\K\d[\d.]*' sonar-project.properties ; then
+    my_pyth=$(grep -Po 'sonar.python.version\D*\K\d[\d.]*' sonar-project.properties)
+elif grep -Po 'python =\D*\K\d[\d.]*' pyproject.toml ; then
+    my_pyth=$(grep -Po 'python =\D*\K\d[\d.]*' pyproject.toml)
 else
-    echo "pyproject.toml does not exist"
-    exit 1
+    echo "Not in a python repo"
+    exit
 fi
-#check for version requirements.txt and pip3 install# 
-if find requirements.txt > /dev/null;
-    
-else
-    echo "requirements.txt does not exist"
-    exit 1
-fi 
-### python3 env change###
-my_pyth=$(grep -Po "(?<=sonar.python.version=)([0-9]|\.)*(?=\s|$)" sonar-project.properties)
+
 echo 'Python3 version required:' $my_pyth
+current_pyth=$(python3 -V)
+
+if [ "Python $my_pyth" = "$current_pyth" ]; then
+    :
+else
+    echo 'Install python' ${my_pyth}
+    exit
+fi
+
 python{$my_pyth} -m venv .venv
-### Activate pyton3 .venv###
+
+#Activate python3 .venv
 echo "Activating venv"
 source .venv/bin/activate
-#poetry and pip3 install#
-poetry install pyproject.toml
-pip3 install -r requirements.txt
+
+#check for pyproject.toml
+if  find pyproject.toml > /dev/null; then
+    poetry lock
+    poetry install
+fi
+
+#check for requirements.txt
+if find requirements.txt > /dev/null; then
+    :
+else
+    pip3 install -r requirements.txt
+fi 
